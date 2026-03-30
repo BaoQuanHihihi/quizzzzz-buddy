@@ -25,7 +25,7 @@ export function SubjectCard({
       </h3>
       <p className="mt-2 text-sm leading-snug text-muted-foreground">
         {subject.questions.length} question{subject.questions.length === 1 ? "" : "s"}
-        {practiced > 0 ? ` · Practiced ${practiced} time${practiced === 1 ? "" : "s"}` : ""}
+        {practiced > 0 ? ` · Đã làm ${practiced} lần` : ""}
       </p>
       <div className="mt-5 flex flex-1 items-end">
         <motion.button

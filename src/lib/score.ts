@@ -48,8 +48,8 @@ export function buildQuizResult(params: {
 }
 
 export function evaluationMessage(percentCorrect: number): string {
-  if (percentCorrect >= 90) return "Excellent";
-  if (percentCorrect >= 70) return "Good job";
-  if (percentCorrect >= 50) return "Not bad — keep practicing";
-  return "Needs more review";
+  if (percentCorrect >= 90) return "Đỉnh theee";
+  if (percentCorrect >= 70) return "Ổn áp";
+  if (percentCorrect >= 50) return "Không tệ";
+  return "Cần luyện tập nhiều hơn";
 }

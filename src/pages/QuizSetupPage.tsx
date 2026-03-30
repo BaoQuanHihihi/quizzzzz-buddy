@@ -70,7 +70,7 @@ export function QuizSetupPage() {
           to="/"
           className="font-medium text-primary hover:text-primary-hover hover:underline"
         >
-          ← All subjects
+          ← Tất cả các môn
         </Link>
       </nav>
 
@@ -86,9 +86,9 @@ export function QuizSetupPage() {
 
         {resumable && (
           <div className="mt-6 rounded-xl border border-warning-border/45 bg-warning-muted px-4 py-3 text-sm shadow-sm ring-1 ring-warning-border/20">
-            <p className="font-medium text-foreground">Unfinished quiz saved</p>
+            <p className="font-medium text-foreground">Bài của bạn đang làm dở :3</p>
             <p className="mt-1 leading-relaxed text-muted-foreground">
-              Resume where you left off, or start a new session below.
+              Bạn có thể tiếp tục bài làm dở trước đó với cùng số lượng câu hỏi và thời gian còn lại, hoặc bắt đầu một bài mới từ đầu.
             </p>
             <motion.button
               type="button"
@@ -96,7 +96,7 @@ export function QuizSetupPage() {
               onClick={handleResume}
               className="mt-3 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
             >
-              Resume quiz
+              Tiếp tục
             </motion.button>
           </div>
         )}
@@ -115,13 +115,13 @@ export function QuizSetupPage() {
               className="mt-2 w-full rounded-xl border border-border bg-card px-3 py-2.5 text-sm text-foreground focus:border-primary/45 focus:outline-none focus:ring-2 focus:ring-ring/35"
             />
             <p className="mt-1 text-xs text-muted-foreground">
-              Capped at {subject.questions.length} (all available).
+              Giới hạn là {subject.questions.length} câu hỏi.
             </p>
           </label>
 
           <label className="block">
             <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Time limit (minutes)
+              Time limit (phút)
             </span>
             <input
               type="number"
@@ -130,7 +130,7 @@ export function QuizSetupPage() {
               onChange={(e) => setTimeMin(parseInt(e.target.value, 10) || 0)}
               className="mt-2 w-full rounded-xl border border-border bg-card px-3 py-2.5 text-sm text-foreground focus:border-primary/45 focus:outline-none focus:ring-2 focus:ring-ring/35"
             />
-            <p className="mt-1 text-xs text-muted-foreground">Use 0 for no time limit.</p>
+            <p className="mt-1 text-xs text-muted-foreground">Để là 0 nếu không muốn giới hạn thời gian.</p>
           </label>
         </div>
 

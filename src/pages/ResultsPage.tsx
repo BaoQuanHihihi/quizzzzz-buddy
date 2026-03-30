@@ -90,13 +90,13 @@ export function ResultsPage() {
             }}
             className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
           >
-            Practice again
+            Làm lại khôm :3
           </motion.button>
           <Link
             to="/"
             className="inline-flex items-center rounded-xl border border-border bg-secondary px-4 py-2.5 text-sm font-semibold text-secondary-foreground shadow-sm transition-colors hover:bg-muted"
           >
-            All subjects
+            Tất cả các môn
           </Link>
         </div>
       </motion.div>
@@ -129,7 +129,7 @@ export function ResultsPage() {
                       : "bg-review-wrong-badge text-review-wrong-label",
                   ].join(" ")}
                 >
-                  {r.isCorrect ? "Correct" : "Incorrect"}
+                  {r.isCorrect ? "✔ Chính xác" : "✖ Chưa chính xác"}
                 </span>
               </div>
               <div className="mt-3 space-y-2 text-sm leading-relaxed text-muted-foreground">
