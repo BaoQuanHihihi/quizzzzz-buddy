@@ -7,6 +7,7 @@ import { QuestionNavigator } from "../components/QuestionNavigator";
 import { AnswerOptions } from "../components/AnswerOptions";
 import { useQuiz } from "../context/QuizContext";
 import { useQuizTimer } from "../hooks/useQuizTimer";
+import { isMultipleAnswer } from "../lib/questionUtils";
 import { formatCountdown } from "../lib/timerFormat";
 
 export function QuizPage() {
@@ -59,6 +60,13 @@ export function QuizPage() {
   const handleSubmit = () => {
     submitQuiz();
     navigate(`/subject/${encodeURIComponent(id)}/results`);
+  };
+
+  const handleAnswerChange = (next: number[]) => {
+    updateAnswer(idx, next);
+    if (!isMultipleAnswer(q) && idx < total - 1) {
+      setCurrentIndex(idx + 1);
+    }
   };
 
   return (
@@ -139,7 +147,7 @@ export function QuizPage() {
                 question={q}
                 questionIndex={idx}
                 selected={selected}
-                onChange={(next) => updateAnswer(idx, next)}
+                onChange={handleAnswerChange}
               />
             </div>
           </motion.div>
@@ -164,14 +172,6 @@ export function QuizPage() {
           >
             Next
           </motion.button>
-          <motion.button
-            type="button"
-            whileTap={{ scale: 0.98 }}
-            onClick={handleSubmit}
-            className="ml-auto rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
-          >
-            Submit
-          </motion.button>
         </div>
       </section>
 
@@ -185,6 +185,17 @@ export function QuizPage() {
           answers={session.answers}
           onSelect={(i) => setCurrentIndex(i)}
         />
+      </div>
+
+      <div className="mt-6">
+        <motion.button
+          type="button"
+          whileTap={{ scale: 0.98 }}
+          onClick={handleSubmit}
+          className="w-full rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover sm:w-auto sm:min-w-[12rem]"
+        >
+          Submit
+        </motion.button>
       </div>
     </PageShell>
   );
