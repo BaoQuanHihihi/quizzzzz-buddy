@@ -38,7 +38,7 @@
   --review-correct-border: 167 243 208;
   --review-correct-badge-bg: 167 243 208;
   --review-correct-badge-text: 6 78 59;
-  --review-wrong-bg: 254 242 242;
+  --review-wrong-bg: 254 242 220;
   --review-wrong-border: 252 165 165;
   --review-wrong-badge-bg: 252 165 165;
   --review-wrong-badge-text: 127 29 29;
@@ -83,7 +83,7 @@
   --review-correct-border: 56 142 90;
   --review-correct-badge-bg: 36 84 58;
   --review-correct-badge-text: 187 247 208;
-  --review-wrong-bg: 44 32 34;
+  --review-wrong-bg: 44 10 0;
   --review-wrong-border: 120 56 60;
   --review-wrong-badge-bg: 92 42 46;
   --review-wrong-badge-text: 254 205 205;

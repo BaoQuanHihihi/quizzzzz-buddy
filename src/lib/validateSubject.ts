@@ -24,10 +24,14 @@ function validateQuestion(raw: unknown): Question | null {
   for (const idx of answer as number[]) {
     if (idx < 0 || idx >= optLen) return null;
   }
+  const ex = o["explanation"];
+  const explanation =
+    typeof ex === "string" && ex.trim().length > 0 ? ex.trim() : undefined;
   return {
     text: o["text"] as string,
     options: options as string[],
     answer: answer as number[],
+    ...(explanation ? {explanation} : {}),
   };
 }
 

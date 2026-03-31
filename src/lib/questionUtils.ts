@@ -1,5 +1,12 @@
 import type { Question } from "../types";
 
+export function formatOptionLabels(question: Question, indexes: number[]): string {
+  return indexes
+    .map((i) => question.options[i])
+    .filter(Boolean)
+    .join(", ");
+}
+
 export function isMultipleAnswer(question: Question): boolean {
   return question.answer.length > 1;
 }

@@ -47,6 +47,13 @@ export function buildQuizResult(params: {
   };
 }
 
+/** Wrong answers first, then correct; within each group preserve original quiz order. */
+export function sortResultsForReview(results: QuestionResult[]): QuestionResult[] {
+  const wrong = results.filter((r) => !r.isCorrect).sort((a, b) => a.questionIndex - b.questionIndex);
+  const right = results.filter((r) => r.isCorrect).sort((a, b) => a.questionIndex - b.questionIndex);
+  return [...wrong, ...right];
+}
+
 export function evaluationMessage(percentCorrect: number): string {
   if (percentCorrect >= 90) return "Đỉnh theee";
   if (percentCorrect >= 70) return "Ổn áp";

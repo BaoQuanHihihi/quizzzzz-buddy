@@ -3,8 +3,10 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { PageShell } from "../components/PageShell";
 import { useQuiz } from "../context/QuizContext";
-import { loadQuizDefaults, loadSessionDraft } from "../lib/storage";
+import { QUIZ_MODE_LABEL_VI } from "../lib/quizMode";
 import { tryRestoreSessionFromDraft } from "../lib/restoreDraft";
+import { loadQuizDefaults, loadSessionDraft } from "../lib/storage";
+import type { QuizMode } from "../types";
 
 export function QuizSetupPage() {
   const { id: rawId } = useParams();
@@ -16,6 +18,7 @@ export function QuizSetupPage() {
   const maxQ = subject?.questions.length ?? 0;
   const [count, setCount] = useState(10);
   const [timeMin, setTimeMin] = useState(0);
+  const [mode, setMode] = useState<QuizMode>("test");
 
   useEffect(() => {
     const d = loadQuizDefaults();
@@ -48,11 +51,15 @@ export function QuizSetupPage() {
   const timeSeconds = Math.max(0, Math.floor(timeMin * 60));
 
   const handleStart = () => {
-    startQuiz(subject, {
-      subjectId: subject.id,
-      questionCount: cappedCount,
-      timeLimitSeconds: timeSeconds,
-    });
+    startQuiz(
+      subject,
+      {
+        subjectId: subject.id,
+        questionCount: cappedCount,
+        timeLimitSeconds: timeSeconds,
+      },
+      mode
+    );
     navigate(`/subject/${encodeURIComponent(subject.id)}/quiz`);
   };
 
@@ -70,7 +77,7 @@ export function QuizSetupPage() {
           to="/"
           className="font-medium text-primary hover:text-primary-hover hover:underline"
         >
-          ← Tất cả các môn
+          ← Trang chủ
         </Link>
       </nav>
 
@@ -86,7 +93,12 @@ export function QuizSetupPage() {
 
         {resumable && (
           <div className="mt-6 rounded-xl border border-warning-border/45 bg-warning-muted px-4 py-3 text-sm shadow-sm ring-1 ring-warning-border/20">
-            <p className="font-medium text-foreground">Bài của bạn đang làm dở :3</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="font-medium text-foreground">Bài của bạn đang làm dở :3</p>
+              <span className="inline-flex rounded-full bg-card/90 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-foreground ring-1 ring-border/80">
+                {QUIZ_MODE_LABEL_VI[resumable.mode]}
+              </span>
+            </div>
             <p className="mt-1 leading-relaxed text-muted-foreground">
               Bạn có thể tiếp tục bài làm dở trước đó với cùng số lượng câu hỏi và thời gian còn lại, hoặc bắt đầu một bài mới từ đầu.
             </p>
@@ -134,6 +146,43 @@ export function QuizSetupPage() {
           </label>
         </div>
 
+        <div className="mt-8 space-y-3">
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Chế độ
+          </span>
+          <div className="flex rounded-xl border border-border/90 bg-muted/35 p-1 dark:bg-muted/25">
+            <button
+              type="button"
+              onClick={() => setMode("practice")}
+              className={[
+                "flex-1 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors",
+                mode === "practice"
+                  ? "bg-primary text-primary-foreground shadow-sm ring-1 ring-primary/25"
+                  : "text-muted-foreground hover:text-foreground",
+              ].join(" ")}
+            >
+              {QUIZ_MODE_LABEL_VI.practice}
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("test")}
+              className={[
+                "flex-1 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors",
+                mode === "test"
+                  ? "bg-primary text-primary-foreground shadow-sm ring-1 ring-primary/25"
+                  : "text-muted-foreground hover:text-foreground",
+              ].join(" ")}
+            >
+              {QUIZ_MODE_LABEL_VI.test}
+            </button>
+          </div>
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            {mode === "practice"
+              ? "Xem đáp án ngay sau mỗi câu."
+              : "Làm liên tục và chấm điểm sau khi nộp bài."}
+          </p>
+        </div>
+
         <motion.button
           type="button"
           whileTap={{ scale: 0.99 }}
@@ -141,7 +190,7 @@ export function QuizSetupPage() {
           disabled={subject.questions.length === 0}
           className="mt-8 w-full rounded-xl bg-primary px-4 py-3.5 text-sm font-semibold text-primary-foreground shadow-sm ring-1 ring-primary/20 transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Start quiz
+          Bắt đầu
         </motion.button>
       </motion.div>
     </PageShell>

@@ -1,4 +1,4 @@
-import type { Question, QuizConfig, QuizSession } from "../types";
+import type { Question, QuizConfig, QuizMode, QuizSession } from "../types";
 
 function isQuestionArray(v: unknown): v is Question[] {
   if (!Array.isArray(v)) return false;
@@ -10,6 +10,23 @@ function isQuestionArray(v: unknown): v is Question[] {
       Array.isArray((q as Question).options) &&
       Array.isArray((q as Question).answer)
   );
+}
+
+function normalizeMode(raw: unknown): QuizMode {
+  if (raw === "practice") return "practice";
+  return "test";
+}
+
+function normalizePracticeRevealed(raw: unknown): Record<number, true> {
+  if (!raw || typeof raw !== "object") return {};
+  const out: Record<number, true> = {};
+  for (const k of Object.keys(raw as Record<string, unknown>)) {
+    const i = Number.parseInt(k, 10);
+    if (!Number.isNaN(i) && (raw as Record<string, unknown>)[k] === true) {
+      out[i] = true;
+    }
+  }
+  return out;
 }
 
 export function tryRestoreSessionFromDraft(params: {
@@ -39,5 +56,7 @@ export function tryRestoreSessionFromDraft(params: {
     startedAt,
     deadlineAt: deadlineAt == null ? null : (deadlineAt as number),
     currentIndex,
+    mode: normalizeMode(p["mode"]),
+    practiceRevealed: normalizePracticeRevealed(p["practiceRevealed"]),
   };
 }

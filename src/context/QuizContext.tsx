@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { QuizConfig, QuizResult, QuizSession, SubjectData } from "../types";
+import type { QuizConfig, QuizMode, QuizResult, QuizSession, SubjectData } from "../types";
 import { pickRandomUnique } from "../lib/shuffle";
 import { buildQuizResult } from "../lib/score";
 import {
@@ -23,9 +23,14 @@ type QuizContextValue = {
   subjects: SubjectData[];
   session: QuizSession | null;
   result: QuizResult | null;
-  startQuiz: (subject: SubjectData, config: QuizConfig) => void;
+  startQuiz: (subject: SubjectData, config: QuizConfig, mode?: QuizMode) => void;
   resumeSession: (session: QuizSession) => void;
-  updateAnswer: (questionIndex: number, selected: number[]) => void;
+  updateAnswer: (
+    questionIndex: number,
+    selected: number[],
+    options?: { revealPractice?: boolean }
+  ) => void;
+  revealPracticeQuestion: (questionIndex: number) => void;
   setCurrentIndex: (i: number) => void;
   submitQuiz: () => void;
   abandonQuiz: () => void;
@@ -42,6 +47,8 @@ function persistDraft(s: QuizSession): void {
     startedAt: s.startedAt,
     deadlineAt: s.deadlineAt,
     currentIndex: s.currentIndex,
+    mode: s.mode,
+    practiceRevealed: s.practiceRevealed,
   });
 }
 
@@ -59,7 +66,7 @@ export function QuizProvider({
     sessionRef.current = session;
   }, [session]);
 
-  const startQuiz = useCallback((subject: SubjectData, config: QuizConfig) => {
+  const startQuiz = useCallback((subject: SubjectData, config: QuizConfig, mode: QuizMode = "test") => {
     const n = Math.min(config.questionCount, subject.questions.length);
     const picked = pickRandomUnique(subject.questions, n);
     const now = Date.now();
@@ -74,6 +81,8 @@ export function QuizProvider({
       startedAt: now,
       deadlineAt: deadline,
       currentIndex: 0,
+      mode,
+      practiceRevealed: {},
     };
     setSession(newSession);
     bumpPracticeCount(config.subjectId);
@@ -90,12 +99,32 @@ export function QuizProvider({
     persistDraft(s);
   }, []);
 
-  const updateAnswer = useCallback((questionIndex: number, selected: number[]) => {
+  const updateAnswer = useCallback(
+    (questionIndex: number, selected: number[], options?: { revealPractice?: boolean }) => {
+      setSession((prev) => {
+        if (!prev) return prev;
+        const practiceRevealed: Record<number, true> =
+          options?.revealPractice === true
+            ? { ...prev.practiceRevealed, [questionIndex]: true as const }
+            : prev.practiceRevealed;
+        const next: QuizSession = {
+          ...prev,
+          answers: { ...prev.answers, [questionIndex]: [...selected] },
+          practiceRevealed,
+        };
+        persistDraft(next);
+        return next;
+      });
+    },
+    []
+  );
+
+  const revealPracticeQuestion = useCallback((questionIndex: number) => {
     setSession((prev) => {
       if (!prev) return prev;
       const next: QuizSession = {
         ...prev,
-        answers: { ...prev.answers, [questionIndex]: [...selected] },
+        practiceRevealed: { ...prev.practiceRevealed, [questionIndex]: true },
       };
       persistDraft(next);
       return next;
@@ -151,6 +180,7 @@ export function QuizProvider({
       startQuiz,
       resumeSession,
       updateAnswer,
+      revealPracticeQuestion,
       setCurrentIndex,
       submitQuiz,
       abandonQuiz,
@@ -163,6 +193,7 @@ export function QuizProvider({
       startQuiz,
       resumeSession,
       updateAnswer,
+      revealPracticeQuestion,
       setCurrentIndex,
       submitQuiz,
       abandonQuiz,

@@ -2,6 +2,8 @@ export type Question = {
   text: string;
   options: string[];
   answer: number[];
+  /** Optional per-question explanation (shown in practice feedback and review when present) */
+  explanation?: string;
 };
 
 export type SubjectData = {
@@ -11,6 +13,8 @@ export type SubjectData = {
   /** Original file path from glob (for debugging) */
   sourcePath: string;
 };
+
+export type QuizMode = "practice" | "test";
 
 export type QuizConfig = {
   subjectId: string;
@@ -35,6 +39,9 @@ export type QuizSession = {
   /** wall clock when quiz ends if timed */
   deadlineAt: number | null;
   currentIndex: number;
+  mode: QuizMode;
+  /** Practice mode: question indices where per-question feedback has been shown */
+  practiceRevealed: Record<number, true>;
 };
 
 export type QuestionResult = {

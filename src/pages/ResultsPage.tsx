@@ -2,15 +2,9 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { PageShell } from "../components/PageShell";
 import { useQuiz } from "../context/QuizContext";
-import { evaluationMessage } from "../lib/score";
+import { formatOptionLabels } from "../lib/questionUtils";
+import { evaluationMessage, sortResultsForReview } from "../lib/score";
 import { formatDuration } from "../lib/timerFormat";
-
-function optionLabels(question: { options: string[] }, indexes: number[]): string {
-  return indexes
-    .map((i) => question.options[i])
-    .filter(Boolean)
-    .join(", ");
-}
 
 export function ResultsPage() {
   const { id: rawId } = useParams();
@@ -24,6 +18,7 @@ export function ResultsPage() {
   }
 
   const msg = evaluationMessage(result.percentCorrect);
+  const reviewOrder = sortResultsForReview(result.results);
 
   return (
     <PageShell>
@@ -96,7 +91,7 @@ export function ResultsPage() {
             to="/"
             className="inline-flex items-center rounded-xl border border-border bg-secondary px-4 py-2.5 text-sm font-semibold text-secondary-foreground shadow-sm transition-colors hover:bg-muted"
           >
-            Tất cả các môn
+            Trang chủ
           </Link>
         </div>
       </motion.div>
@@ -104,9 +99,9 @@ export function ResultsPage() {
       <section className="mt-10">
         <h2 className="font-display text-lg font-bold text-foreground">Review</h2>
         <ul className="mt-4 space-y-4">
-          {result.results.map((r, i) => (
+          {reviewOrder.map((r, i) => (
             <motion.li
-              key={i}
+              key={r.questionIndex}
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.03 }}
@@ -119,7 +114,7 @@ export function ResultsPage() {
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <p className="text-sm font-semibold leading-relaxed text-foreground">
-                  {i + 1}. {r.question.text}
+                  Câu {r.questionIndex + 1}. {r.question.text}
                 </p>
                 <span
                   className={[
@@ -137,12 +132,17 @@ export function ResultsPage() {
                   <span className="font-medium text-foreground">Your answer: </span>
                   {(r.userSelected?.length ?? 0) === 0
                     ? "—"
-                    : optionLabels(r.question, r.userSelected)}
+                    : formatOptionLabels(r.question, r.userSelected)}
                 </p>
                 <p>
                   <span className="font-medium text-foreground">Correct: </span>
-                  {optionLabels(r.question, r.correctIndexes)}
+                  {formatOptionLabels(r.question, r.correctIndexes)}
                 </p>
+                {r.question.explanation ? (
+                  <p className="mt-2 border-t border-border/50 pt-2 text-foreground">
+                    {r.question.explanation}
+                  </p>
+                ) : null}
               </div>
             </motion.li>
           ))}

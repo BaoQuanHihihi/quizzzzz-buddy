@@ -7,15 +7,23 @@ import { QuestionNavigator } from "../components/QuestionNavigator";
 import { AnswerOptions } from "../components/AnswerOptions";
 import { useQuiz } from "../context/QuizContext";
 import { useQuizTimer } from "../hooks/useQuizTimer";
-import { isMultipleAnswer } from "../lib/questionUtils";
+import { formatOptionLabels, isMultipleAnswer } from "../lib/questionUtils";
+import { evaluateQuestion } from "../lib/score";
 import { formatCountdown } from "../lib/timerFormat";
 
 export function QuizPage() {
   const { id: rawId } = useParams();
   const id = rawId ? decodeURIComponent(rawId) : "";
   const navigate = useNavigate();
-  const { session, result, submitQuiz, updateAnswer, setCurrentIndex, abandonQuiz } =
-    useQuiz();
+  const {
+    session,
+    result,
+    submitQuiz,
+    updateAnswer,
+    revealPracticeQuestion,
+    setCurrentIndex,
+    abandonQuiz,
+  } = useQuiz();
 
   const onExpire = useCallback(() => {
     submitQuiz();
@@ -48,6 +56,9 @@ export function QuizPage() {
   const idx = Math.min(session.currentIndex, total - 1);
   const q = session.questions[idx]!;
   const selected = session.answers[idx] ?? [];
+  const isPractice = session.mode === "practice";
+  const revealed = !!session.practiceRevealed[idx];
+  const multi = isMultipleAnswer(q);
 
   const go = (next: number) => {
     const clamped = Math.max(0, Math.min(total - 1, next));
@@ -63,11 +74,26 @@ export function QuizPage() {
   };
 
   const handleAnswerChange = (next: number[]) => {
+    if (isPractice) {
+      if (multi) {
+        updateAnswer(idx, next);
+        return;
+      }
+      updateAnswer(idx, next, { revealPractice: true });
+      return;
+    }
     updateAnswer(idx, next);
-    if (!isMultipleAnswer(q) && idx < total - 1) {
+    if (!multi && idx < total - 1) {
       setCurrentIndex(idx + 1);
     }
   };
+
+  const handlePracticeCheckMulti = () => {
+    if (selected.length === 0) return;
+    revealPracticeQuestion(idx);
+  };
+
+  const practiceEval = isPractice && revealed ? evaluateQuestion(q, idx, selected) : null;
 
   return (
     <PageShell>
@@ -148,8 +174,71 @@ export function QuizPage() {
                 questionIndex={idx}
                 selected={selected}
                 onChange={handleAnswerChange}
+                revealed={isPractice && revealed}
               />
             </div>
+
+            {isPractice && multi && !revealed && (
+              <div className="mt-6">
+                <motion.button
+                  type="button"
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handlePracticeCheckMulti}
+                  disabled={selected.length === 0}
+                  className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-45"
+                >
+                  Kiểm tra đáp án
+                </motion.button>
+              </div>
+            )}
+
+            {practiceEval && (
+              <div
+                className={[
+                  "mt-6 rounded-xl border px-4 py-3 text-sm shadow-sm ring-1 ring-black/5 dark:ring-white/5",
+                  practiceEval.isCorrect
+                    ? "border-review-correct-border/80 bg-review-correct-bg"
+                    : "border-review-wrong-border/80 bg-review-wrong-bg",
+                ].join(" ")}
+              >
+                <p className="font-semibold text-foreground">
+                  {practiceEval.isCorrect ? "Chính xác" : "Chưa chính xác"}
+                </p>
+                <div className="mt-2 space-y-1.5 leading-relaxed text-muted-foreground">
+                  <p>
+                    <span className="font-medium text-foreground">Bạn chọn: </span>
+                    {(practiceEval.userSelected?.length ?? 0) === 0
+                      ? "—"
+                      : formatOptionLabels(q, practiceEval.userSelected)}
+                  </p>
+                  <p>
+                    <span className="font-medium text-foreground">Đáp án đúng: </span>
+                    {formatOptionLabels(q, practiceEval.correctIndexes)}
+                  </p>
+                  {q.explanation ? (
+                    <p className="mt-2 border-t border-border/60 pt-2 text-foreground">
+                      {q.explanation}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            )}
+
+            {isPractice && revealed && (
+              <div className="mt-6">
+                <motion.button
+                  type="button"
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    if (idx >= total - 1) handleSubmit();
+                    else go(idx + 1);
+                  }}
+                  className="w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover sm:w-auto"
+                >
+                  {idx >= total - 1 ? "Xem kết quả" : "Câu tiếp theo"}
+                </motion.button>
+              </div>
+            )}
           </motion.div>
         </AnimatePresence>
 
@@ -161,17 +250,19 @@ export function QuizPage() {
             disabled={idx === 0}
             className="rounded-xl border border-border bg-secondary px-4 py-2.5 text-sm font-semibold text-secondary-foreground shadow-sm transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Previous
+            Câu trước
           </motion.button>
-          <motion.button
-            type="button"
-            whileTap={{ scale: 0.98 }}
-            onClick={() => go(idx + 1)}
-            disabled={idx >= total - 1}
-            className="rounded-xl border border-border bg-secondary px-4 py-2.5 text-sm font-semibold text-secondary-foreground shadow-sm transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Next
-          </motion.button>
+          {!isPractice && (
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.98 }}
+              onClick={() => go(idx + 1)}
+              disabled={idx >= total - 1}
+              className="rounded-xl border border-border bg-secondary px-4 py-2.5 text-sm font-semibold text-secondary-foreground shadow-sm transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Câu tiếp theo
+            </motion.button>
+          )}
         </div>
       </section>
 
